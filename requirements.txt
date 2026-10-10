@@ -1,0 +1,15 @@
+pyspark==3.5.3
+graphframes
+pandas
+numpy
+pyarrow
+torch
+plotly
+streamlit
+selenium
+webdriver-manager
+beautifulsoup4
+requests
+lxml
+tqdm
+jupyterlab
