@@ -23,22 +23,27 @@ The presentation is in [`docs/Group29_Presentation.pdf`](docs/Group29_Presentati
 ```
 .
 ├── README.md
-├── requirements.txt
 ├── .gitignore
-├── elections/
-│   ├── download_elections.py       # Step 0 – scrapes and downloads raw zip files
-│   ├── convert_to_csv-2.ipynb      # Step 1 – raw .txt/.xlsx → clean UTF-8 CSV
-│   ├── electoral_pipeline.ipynb    # Step 2 – PySpark pipeline Bronze → Silver → Gold
-│   ├── dashboard.py                # Step 3 – Streamlit dashboard
-│   └── italy_regions.geojson       # region boundaries for the choropleth map
-├── taxi/
-│   ├── ML.ipynb                    # cleaning, models for time and fare, streaming
-│   ├── taxi_graph.ipynb            # GraphFrames network analysis
-│   ├── taxi_data_visualization.ipynb  # Plotly visualizations
-│   ├── train.csv                   # 50,000 trips (January 2016)
-│   ├── validation.csv              # 10,000 trips (January 2016)
-│   ├── test.csv                    # 20,000 trips (March 2016)
-│   └── streaming.csv               # 500 trips used to simulate the stream
+├── Visualization/                      # Part 1 – Italian elections
+│   ├── download_elections.py           # Step 0 – scrapes and downloads raw zip files
+│   ├── convert_to_csv-2.ipynb          # Step 1 – raw .txt/.xlsx → clean UTF-8 CSV
+│   ├── electoral_pipeline.ipynb        # Step 2 – PySpark pipeline Bronze → Silver → Gold
+│   ├── dashboard.py                    # Step 3 – Streamlit dashboard
+│   └── italy_regions.geojson           # region boundaries for the choropleth map
+├── ML/                                 # Part 2 – NYC Yellow Taxi
+│   ├── requirements.txt
+│   ├── ML.ipynb                        # cleaning, models for time and fare, streaming
+│   ├── taxi_graph.ipynb                # GraphFrames network analysis
+│   ├── taxi_data_visualization.ipynb   # Plotly visualizations
+│   ├── train.csv                       # 50,000 trips (January 2016)
+│   ├── validation.csv                  # 10,000 trips (January 2016)
+│   ├── test.csv                        # 20,000 trips (March 2016)
+│   ├── streaming.csv                   # 500 trips used to simulate the stream
+│   └── file.parquet/                   # cleaned training set, read by the visualization notebook
+│       ├── part-00000-….snappy.parquet
+│       ├── part-00001-….snappy.parquet
+│       ├── part-00002-….snappy.parquet
+│       └── _SUCCESS
 └── docs/
     └── Group29_Presentation.pdf
 ```
@@ -52,7 +57,8 @@ Requirements: Python 3.10+, **Java 17** (needed by Spark and GraphFrames), Chrom
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r ML/requirements.txt
+pip install pandas pyarrow streamlit plotly selenium webdriver-manager beautifulsoup4 requests lxml tqdm
 jupyter lab
 ```
 
@@ -60,10 +66,10 @@ jupyter lab
 
 # 🗳️ Part 1 – Italian Electoral Data
 
-Run everything from the `elections/` folder:
+Run everything from the `Visualization/` folder:
 
 ```bash
-cd elections
+cd Visualization
 ```
 
 ### Step 0 – Download raw data
@@ -116,7 +122,7 @@ Opens at `http://localhost:8501`. It reads `data_parquet/gold/`, so Step 2 must 
 
 # 🚕 Part 2 – NYC Yellow Taxi
 
-The goal is to predict **trip duration** (seconds) and **fare amount** from information available at pickup. Run the notebooks from the `taxi/` folder, next to the CSV files.
+The goal is to predict **trip duration** (seconds) and **fare amount** from information available at pickup. Run the notebooks from the `ML/` folder, next to the data files.
 
 ### Data
 
@@ -126,6 +132,7 @@ The goal is to predict **trip duration** (seconds) and **fare amount** from info
 | `validation.csv` | 10,000 | random sample, January 2016 (no overlap with train) |
 | `test.csv` | 20,000 | March 2016 (different month, to test generalisation) |
 | `streaming.csv` | 500 | trips used to simulate a live stream |
+| `file.parquet/` | – | cleaned training set (Spark Parquet folder) with `trip_distance`, `RatecodeID`, `fare_amount`, `extra`, `tip_amount`, `tolls_amount`, `target_time`, `pickup_hour`, `area_pickup`, `area_dropoff` |
 
 The samples come from the full monthly files (hundreds of millions of trips across the whole dataset). Cleaning rules are learned on the training set and applied unchanged to validation and test.
 
@@ -168,6 +175,8 @@ Requires Java 17, `pyspark==3.5.3` and the GraphFrames package (`graphframes:gra
 ### `taxi_data_visualization.ipynb` – visualizations
 
 Plotly charts on the cleaned data: descriptive statistics, distributions (fare, tip, distance, duration), most popular pickup/dropoff areas, fare and duration by pickup zone, origin–destination heatmap, correlation matrix, fare vs distance (5% random sample) and hourly patterns of fare, tip, duration and distance.
+
+> ⚠️ The notebook loads `file.parquet/` from its own folder. If the folder is missing it **silently falls back to 20,000 randomly generated rows**, so the charts would not describe real taxi data. Check that the first output cell says `Loading file.parquet ...` and not `generating synthetic fallback`.
 
 ---
 
