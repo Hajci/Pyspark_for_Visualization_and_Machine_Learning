@@ -2,7 +2,9 @@
 
 **Group 29 · NOVA IMS · Big Data Analytics in Spark**
 Libero Biagi · Jenny Kerr Cubelo · Emily Garrone · Marcell Hajdú
-
+> **My contribution (Marcell Hajdú):** I collected the Italian election data through web scraping
+> (Selenium), designed the star schema and built the PySpark (Spark SQL) pipeline to transform and
+> load the data into it, and developed the interactive Streamlit dashboard on top of the model.
 ---
 
 ## 📌 Overview
